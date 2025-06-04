@@ -1,8 +1,10 @@
 // server.js (ou outro nome que você preferir)
 import { sequelize, Usuario, Filme, Canal, CanalFilme, Playlist, Comentario } from './models/Index.js';
 import express from 'express';
-import bodyParser from 'body-parser';
+import { Sequelize } from 'sequelize';
+import usuarioRoutes from './routes/UsuariosRouters.js';
 
+app.use('/usuarios', usuarioRoutes);
 const app = express();
 const port = process.env.PORT || 3000;
 
