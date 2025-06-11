@@ -9,14 +9,20 @@ router.get('/:id', async (req, res) => {
   f ? res.json(f) : res.status(404).json({ error: 'Filme não encontrado' });
 });
 
-router.post('/',   async (req, res) => {
 
+router.post('/',   async (req, res) => {
+  
   console.log('post');
   const filme = await Filme.create(req.body);
   res.status(201).json(filme)
-  }
+}
 );
 
+router.post('/lote',   async (req, res) => {
+  const filme = await Filme.bulkCreate(req.body);
+  res.status(201).json(filme)
+  }
+);
 
 router.put('/:id', async (req, res) => {
   const [u] = await Filme.update(req.body, { where: { id: req.params.id } });

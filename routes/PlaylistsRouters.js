@@ -3,6 +3,7 @@ import { Canal } from '../models/Index.js';
 const router = express.Router();
 
 router.get('/', async (_req, res) => res.json(await Canal.findAll()));
+
 router.get('/:id', async (req, res) => {
   const c = await Canal.findByPk(req.params.id);
   c ? res.json(c) : res.status(404).json({ error: 'Canal não encontrado' });
@@ -15,8 +16,7 @@ router.post('/lote', async (req, res) => {
       return res.status(400).json({ error: 'O corpo da requisição deve ser um array de usuários.' });
     }
 
-    // cria todos os usuários com bulkCreate
-    const usuariosCriados = await Usuario.bulkCreate(usuarios);
+    const usuariosCriados = await usuarios.bulkCreate(usuarios);
 
     res.status(201).json(usuariosCriados);
   } catch (error) {

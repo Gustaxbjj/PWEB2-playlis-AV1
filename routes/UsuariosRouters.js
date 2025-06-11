@@ -10,6 +10,7 @@ router.get('/',   async (_req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
+  console.log('get/:id')
   const u = await Usuario.findByPk(req.params.id);
   if (u) res.json(u);
   else  res.status(404).json({ error: 'Usuário não encontrado' });
@@ -47,6 +48,8 @@ router.put('/:id', async (req, res) => {
     res.json(u);
   } else res.status(404).json({ error: 'Usuário não encontrado' });
 });
+
+
 router.delete('/:id', async (req, res) => {
   const deleted = await Usuario.destroy({ where: { id: req.params.id } });
   if (deleted) res.json({ message: 'Deletado com sucesso' });
