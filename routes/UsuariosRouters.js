@@ -1,155 +1,56 @@
-import Usuario from  "../models/Usuario";
-import express from "express";
+import express from 'express';
+import { Usuario } from '../models/Index.js';
+import Sequelize from 'sequelize';
 
 const router = express.Router();
-import { body, validationResult } from "express-validator";
-import { Op } from "sequelize";
-import db from "../models/Index.js";
-import { sequelize } from "../models/Index.js";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
-get("/usuarios", async (req, res) => {
-
-    try {
-        const usuarios = await db.Usuario.findAll();
-        res.json(usuarios);
-    } catch (error) {
-        console.error("Erro ao buscar usuários:", error);
-        res.status(500).json({ error: "Erro ao buscar usuários" });
-    }
-    })
-
-    get("/usuarios/:id", async (req, res) => {
-    const { id } = req.params;
-    try {
-        const usuario = await db.Usuario.findByPk(id);
-        if (!usuario) {
-            return res.status(404).json({ error: "Usuário não encontrado" });
-        }
-        res.json(usuario);
-    } catch (error) {
-        console.error("Erro ao buscar usuário:", error);
-        res.status(500).json({ error: "Erro ao buscar usuário" });
-    }
+router.get('/',   async (_req, res) => {
+  const list = await Usuario.findAll();
+  res.json(list);
 });
 
-post("/usuarios", [
-    body("login").isString().withMessage("O login deve ser uma string."),
-    body("nome").isString().withMessage("O nome deve ser uma string."),
-    body("email").isEmail().withMessage("O email deve ser válido."),
-    body("senha").isString().withMessage("A senha deve ser uma string.")
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { login, nome, email, senha } = req.body;
-
-    try {
-        const usuario = await db.Usuario.create({ login, nome, email, senha });
-        res.status(201).json(usuario);
-    } catch (error) {
-        console.error("Erro ao criar usuário:", error);
-        res.status(500).json({ error: "Erro ao criar usuário" });
-    }
+router.get('/:id', async (req, res) => {
+  const u = await Usuario.findByPk(req.params.id);
+  if (u) res.json(u);
+  else  res.status(404).json({ error: 'Usuário não encontrado' });
 });
 
-put ("/usuarios/:id", [ 
-    body("login").optional().isString().withMessage("O login deve ser uma string."),
-    body("nome").optional().isString().withMessage("O nome deve ser uma string."),
-    body("email").optional().isEmail().withMessage("O email deve ser válido."),
-    body("senha").optional().isString().withMessage("A senha deve ser uma string.")
-], async (req, res) => {
-    const { id } = req.params;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { login, nome, email, senha } = req.body;
-
-    try {
-        const usuario = await db.Usuario.findByPk(id);
-        if (!usuario) {
-            return res.status(404).json({ error: "Usuário não encontrado" });
-        }
-
-        await usuario.update({ login, nome, email, senha });
-        res.json(usuario);
-    } catch (error) {
-        console.error("Erro ao atualizar usuário:", error);
-        res.status(500).json({ error: "Erro ao atualizar usuário" });
-    }
+router.post('/',  async (req, res) => {
+  const u = await Usuario.create(req.body);
+  res.status(201).json(u);
 });
 
-delete ("/usuarios/:id", async (req, res) => { 
-    const { id } = req.params;
+router.post('/lote', async (req, res) => {
+  try {
+    const usuarios = req.body; // espera um array de usuários no body
 
-    try {
-        const usuario = await db.Usuario.findByPk(id);
-        if (!usuario) {
-            return res.status(404).json({ error: "Usuário não encontrado" });
-        }
-
-        await usuario.destroy();
-        res.status(204).send();
-    } catch (error) {
-        console.error("Erro ao deletar usuário:", error);
-        res.status(500).json({ error: "Erro ao deletar usuário" });
+    if (!Array.isArray(usuarios)) {
+      return res.status(400).json({ error: 'O corpo da requisição deve ser um array de usuários.' });
     }
+
+    // cria todos os usuários com bulkCreate
+    const usuariosCriados = await Usuario.bulkCreate(usuarios);
+
+    res.status(201).json(usuariosCriados);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao inserir os usuários em lote.' });
+  }
 });
 
-get("/usuarios/search", async (req, res) => {
-    const { query } = req.query;
 
-    if (!query) {
-        return res.status(400).json({ error: "Query parameter is required" });
-    }
 
-    try {
-        const usuarios = await db.Usuario.findAll({
-            where: {
-                [Op.or]: [
-                    { login: { [Op.like]: `%${query}%` } },
-                    { nome: { [Op.like]: `%${query}%` } },
-                    { email: { [Op.like]: `%${query}%` } }
-                ]
-            }
-        });
-
-        res.json(usuarios);
-    } catch (error) {
-        console.error("Erro ao buscar usuários:", error);
-        res.status(500).json({ error: "Erro ao buscar usuários" });
-    }
+router.put('/:id', async (req, res) => {
+  const [updated] = await Usuario.update(req.body, { where: { id: req.params.id } });
+  if (updated) {
+    const u = await Usuario.findByPk(req.params.id);
+    res.json(u);
+  } else res.status(404).json({ error: 'Usuário não encontrado' });
 });
-
-get("/usuarios/buscando-por-email-ou-login", async (req, res) => {
-    const { email, login } = req.query;
-
-    if (!email && !login) {
-        return res.status(400).json({ error: "Pelo menos um parâmetro (email ou login) é necessário" });
-    }
-
-    try {
-        const whereClause = {};
-        if (email) {
-            whereClause.email = { [Op.like]: `%${email}%` };
-        }
-        if (login) {
-            whereClause.login = { [Op.like]: `%${login}%` };
-        }
-
-        const usuarios = await db.Usuario.findAll({
-            where: whereClause
-        });
-
-        res.json(usuarios);
-    } catch (error) {
-        console.error("Erro ao buscar usuários:", error);
-        res.status(500).json({ error: "Erro ao buscar usuários" });
-    }
+router.delete('/:id', async (req, res) => {
+  const deleted = await Usuario.destroy({ where: { id: req.params.id } });
+  if (deleted) res.json({ message: 'Deletado com sucesso' });
+  else res.status(404).json({ error: 'Usuário não encontrado' });
 });
 
 export default router;

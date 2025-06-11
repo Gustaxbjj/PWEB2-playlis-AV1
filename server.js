@@ -1,35 +1,33 @@
-// server.js (ou outro nome que você preferir)
-import { sequelize, Usuario, Filme, Canal, CanalFilme, Playlist, Comentario } from './models/Index.js';
 import express from 'express';
-import { Sequelize } from 'sequelize';
-import usuarioRoutes from './routes/UsuariosRouters.js';
+import bodyParser from 'body-parser';
+import { sequelize } from './models/Index.js';
 
-app.use('/usuarios', usuarioRoutes);
+import usuarioRoutes   from './routes/UsuariosRouters.js';
+import filmeRoutes     from './routes/FilmesRouters.js';
+import canalRoutes     from './routes/CanaisRouters.js';
+import playlistRoutes  from './routes/PlaylistsRouters.js';
+import comentarioRoutes from './routes/ComentarioRouters.js';
+
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(bodyParser.json());
 
-app.get('/version', (req, res) => {
-  res.json({ status: 'ok', version: '1.2.1', timestamp: new Date().toISOString() });
-
+app.get('/version', (_req, res) => {
+  res.json({ status: 'ok', version: '1.0.0' });
 });
 
+app.use('/usuarios', usuarioRoutes);
+app.use('/filmes',   filmeRoutes);
+app.use('/canais',   canalRoutes);
+app.use('/playlists', playlistRoutes);
+app.use('/comentarios', comentarioRoutes);
 
-(async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Conexão com o banco de dados estabelecida com sucesso.');
-
-    await sequelize.sync({ alter: true }); // Isso agora criará TODAS as tabelas com base em todos os modelos importados e relacionados
-    console.log('✅ Tabelas sincronizadas com sucesso.');
-
+sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('✅ Database ok');
     app.listen(port, () => {
-      console.log(`Servidor rodando em http://localhost:${port}`);
+      console.log(`🚀 Server running on http://localhost:${port}`);
     });
-
-  } catch (error) {
-    console.error('❌ Erro ao conectar ou sincronizar o banco de dados:', error);
-  } finally {
-    await sequelize.close();
-  }
-})();
+  })
+  .catch(err => console.error('❌ Erro ao conectar:', err));
