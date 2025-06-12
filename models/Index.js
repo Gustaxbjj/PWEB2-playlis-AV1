@@ -1,4 +1,7 @@
+// models/Index.js
+import { DataTypes } from 'sequelize';
 import sequelize from './../config/database.js';
+
 import UsuarioModel from './Usuario.js';
 import FilmeModel from './Filme.js';
 import CanalModel from './Canal.js';
@@ -7,13 +10,13 @@ import PlaylistModel from './Playlist.js';
 import ComentarioModel from './Comentario.js';
 import MensalidadeModel from './Mensalidade.js';
 
-const Mensalidade = MensalidadeModel(sequelize);
-const Usuario = UsuarioModel(sequelize);
-const Filme = FilmeModel(sequelize);
-const Canal = CanalModel(sequelize);
-const CanalFilme = CanalFilmeModel(sequelize);
-const Playlist = PlaylistModel(sequelize);
-const Comentario = ComentarioModel(sequelize);
+const Mensalidade = MensalidadeModel(sequelize, DataTypes);
+const Usuario = UsuarioModel(sequelize, DataTypes);
+const Filme = FilmeModel(sequelize, DataTypes);
+const Canal = CanalModel(sequelize, DataTypes);
+const CanalFilme = CanalFilmeModel(sequelize, DataTypes);
+const Playlist = PlaylistModel(sequelize, DataTypes);
+const Comentario = ComentarioModel(sequelize, DataTypes);
 
 // RELACIONAMENTOS
 Canal.belongsToMany(Filme, {
