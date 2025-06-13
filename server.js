@@ -5,7 +5,7 @@ import { sequelize } from './models/Index.js';
 import usuarioRoutes   from './routes/UsuariosRouters.js';
 import filmeRoutes     from './routes/FilmesRouters.js';
 import canalRoutes     from './routes/CanaisRouters.js';
-//import playlistRoutes  from './routes/PlaylistsRouters.js';
+import playlistRoutes from './routes/PlaylistRouters.js';
 import comentarioRoutes from './routes/ComentarioRouters.js';
 
 const app = express();
@@ -20,7 +20,7 @@ app.get('/version', (_req, res) => {
 app.use('/usuarios', usuarioRoutes);
 app.use('/filmes',   filmeRoutes);
 app.use('/canais',   canalRoutes);
-//app.use('/playlists', playlistRoutes);
+app.use('/playlists', playlistRoutes);
 app.use('/comentarios', comentarioRoutes);
 
 sequelize.sync({ alter: true })
